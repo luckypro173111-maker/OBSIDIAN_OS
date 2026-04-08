@@ -1,0 +1,84 @@
+# CATEGORIZED RSS FEEDS LIST
+============================
+
+## GLOBAL & GENERAL TOPICS
+--------------------------
+### World News
+- BBC World News: http://feeds.bbci.co.uk/news/world/rss.xml
+- Reuters World: https://www.reutersagency.com/feed/?best-topics=world-news
+- Al Jazeera English: https://www.aljazeera.com/xml/rss/all.xml
+
+### Technology
+- Hacker News: https://news.ycombinator.com/rss
+- The Verge: https://www.theverge.com/rss/index.xml
+- Wired: https://www.wired.com/feed/rss
+
+### Finance & Business
+- WSJ Business: https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml
+- Financial Times: https://www.ft.com/?format=rss
+
+
+## COUNTRY-SPECIFIC NEWS
+-----------------------
+
+### INDIA 🇮🇳
+- Times of India (Top Stories): https://timesofindia.indiatimes.com/rssfeedstopstories.cms
+- NDTV India News: https://feeds.feedburner.com/ndtvnews-india-news
+- The Hindu: https://www.thehindu.com/news/national/feeder/default.rss
+
+### GEORGIA 🇬🇪
+- Civil.ge: https://civil.ge/feed
+- Agenda.ge (News): https://agenda.ge/en/rss
+
+### CHINA 🇨🇳
+- South China Morning Post (SCMP): https://www.scmp.com/rss/2/feed
+- China Daily (World): http://www.chinadaily.com.cn/rss/world.xml
+
+### JAPAN 🇯🇵
+- The Japan Times (Full Feed): https://www.japantimes.co.jp/feed/
+- Mainichi English News: https://mainichi.jp/english/rss/all/index.xml
+
+### PAKISTAN 🇵🇰
+- Dawn News (Home): https://www.dawn.com/feeds/home
+- The Express Tribune: https://tribune.com.pk/feed/home
+
+### BANGLADESH 🇧🇩
+- The Daily Star: https://www.thedailystar.net/rss.xml
+- Prothom Alo (English): https://en.prothomalo.com/feed
+
+### SRI LANKA 🇱🇰
+- Daily Mirror: https://www.dailymirror.lk/rss/all_news
+- NewsFirst.lk: https://www.newsfirst.lk/feed/
+
+### NEPAL 🇳🇵
+- The Kathmandu Post: https://tkp.kathmandupost.com/rss
+
+### MYANMAR 🇲🇲
+- The Irrawaddy (English): https://www.irrawaddy.com/feed
+- Myanmar Now: https://www.myanmar-now.org/en/feed
+
+### BHUTAN 🇧🇹
+- Kuensel Online: https://kuenselonline.com/feed/
+
+## FOOD & CUISINE 🥘
+-------------------
+### India
+- Veg Recipes of India: https://www.vegrecipesofindia.com/feed/
+- Hebbar's Kitchen: https://hebbarskitchen.com/feed/
+
+### China
+- The Woks of Life: https://thewoksoflife.com/feed/
+
+### Japan
+- Just One Cookbook: https://www.justonecookbook.com/feed/
+
+### Pakistan & Regional
+- Pakistan Food Forum / Recipes: (Often found via general lifestyle feeds like Dawn Prism Food)
+- Dawn News (Food & Images): https://www.dawn.com/feeds/images
+
+### Georgia & Western Asia
+- Georgian Recipes: https://georgianrecipes.net/feed/
+
+
+============================
+NOTE: These URLs can be used in the "Custom Global Feed" input in your Dashboard Settings.

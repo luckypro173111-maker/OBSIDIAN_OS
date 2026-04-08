@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="icon" type="image/x-icon" href="obsedianlogo.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Obsidian OS Dashboard</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@400;700&family=Poppins:wght@300;500&family=JetBrains+Mono:wght@400;700&family=Montserrat:wght@400;600&display=swap"
+    rel="stylesheet">
+</head>
+
+<body data-theme="default">
+
+  <!-- Background Layers -->
+  <div class="bg-layer anim-gradient"></div>
+  <div class="bg-layer noise-overlay"></div>
+  <video id="custom-bg-video" autoplay loop muted playsinline></video>
+  <div id="custom-bg-img"></div>
+
+  <!-- Cursor Particle Canvas -->
+  <canvas id="trailCanvas"></canvas>
+  <div id="custom-cursor-dot"></div>
+
+  <!-- Top Navigation Bar -->
+  <header class="topbar">
+    <div class="logo-text" style="display:flex; align-items:center; gap: 8px;">
+      <span id="os-brand-text">OBSIDIAN.OS</span>
+      <button id="edit-mode-toggle" class="edit-mode-btn">Edit Mode</button>
+      <button id="bg-video-control" class="topbar-icon-btn material-symbols-outlined" title="Pause Background" style="display:none;">pause</button>
+      <button id="legibility-toggle" class="topbar-icon-btn material-symbols-outlined" title="Toggle Legibility Mode">visibility</button>
+    </div>
+    <div class="status-icons">
+      <span class="material-symbols-outlined" id="wifi-icon" title="Connected: Vastra_Veda_5G">wifi</span>
+      <div class="battery-container" title="Battery Status">
+        <span class="material-symbols-outlined" id="battery-icon">battery_full</span>
+        <span id="battery-percent">100%</span>
+      </div>
+      <img id="profile-icon-img" src="https://via.placeholder.com/100.png?text=U" alt="Profile" title="Master Settings">
+    </div>
+  </header>
+
+  <!-- Dynamic OS-Style Dock -->
+  <div id="dynamic-dock" class="os-dock left">
+    <!-- Favorited Links dynamically injected here -->
+  </div>
+
+  <!-- Bottom Taskbar/Footer -->
+  <footer class="bottombar">
+    <span>SYSTEM ONLINE // 2026 // ADVANCED PWA</span>
+    <span style="opacity: 0.5;">SECURE CONNECTION</span>
+  </footer>
+
+  <!-- Media Viewer Floating Button -->
+  <button id="floating-media-btn" class="material-symbols-outlined">movie</button>
+
+  <!-- Control Center (Sidebar) -->
+  <div id="control-center">
+    <button id="close-control-center" class="material-symbols-outlined text-on-surface"
+      style="position:absolute; top:40px; right:24px; background:transparent; border:none; cursor:pointer; color:var(--text-primary); font-size:24px;">close</button>
+    <h2>Control Center</h2>
+
+    <div class="setting-group">
+      <label>Global Theme</label>
+      <select id="theme-selector">
+        <option value="default">Stitch Default</option>
+        <option value="oled-black">OLED Black (Pure)</option>
+        <option value="frost-white">Frost White</option>
+        <option value="mocha-brown">Mocha Brown</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>Typography Engine (Global)</label>
+      <select id="global-font-selector">
+        <optgroup label="Sans-Serif (Modern)">
+          <option value="var(--font-body)">Default (Manrope)</option>
+          <option value="'Inter', sans-serif">Inter</option>
+          <option value="'Montserrat', sans-serif">Montserrat</option>
+          <option value="'Poppins', sans-serif">Poppins</option>
+          <option value="'Source Sans 3', sans-serif">Source Sans 3</option>
+          <option value="'System-UI', sans-serif">System UI</option>
+        </optgroup>
+        <optgroup label="Serif (Elegant)">
+          <option value="'Playfair Display', serif">Playfair Display</option>
+          <option value="'Lora', serif">Lora</option>
+          <option value="'Merriweather', serif">Merriweather</option>
+          <option value="'EB Garamond', serif">EB Garamond</option>
+          <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
+        </optgroup>
+        <optgroup label="Monospace (Technical)">
+          <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+          <option value="'Fira Code', monospace">Fira Code</option>
+          <option value="'Space Mono', monospace">Space Mono</option>
+          <option value="'Source Code Pro', monospace">Source Code Pro</option>
+        </optgroup>
+        <optgroup label="Display / Decorative">
+          <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
+          <option value="'Cinzel', serif">Cinzel</option>
+          <option value="'Abril Fatface', serif">Abril Fatface</option>
+          <option value="'UnifrakturMaguntia', cursive">UnifrakturMaguntia (Old English)</option>
+          <option value="'Syncopate', sans-serif">Syncopate</option>
+        </optgroup>
+        <optgroup label="Custom Uploads" id="global-custom-fonts-group">
+          <!-- Dynamically populated -->
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>Clock Typography (Override)</label>
+      <select id="clock-font-selector">
+        <option value="inherit">Inherit Global</option>
+        <option value="'Space Grotesk', sans-serif">Space Grotesk (Neo-Grotesque)</option>
+        <option value="'JetBrains Mono', monospace">JetBrains Mono (Digital)</option>
+        <option value="'Syncopate', sans-serif">Syncopate (Cinematic)</option>
+        <option value="'UnifrakturMaguntia', cursive">Gothic (Classic)</option>
+        <option value="'Abril Fatface', serif">Display (Bold)</option>
+        <optgroup label="Custom Uploads" id="clock-custom-fonts-group">
+          <!-- Dynamically populated -->
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>Custom Font Utility (Upload)</label>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <input type="file" id="custom-font-upload" accept=".otf, .ttf, .woff, .woff2">
+        <input type="text" id="custom-font-name" placeholder="Font Name (e.g. MyBrand)">
+        <button class="btn" id="apply-custom-font-btn">Upload & Save Font</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>Manage Uploaded Fonts</label>
+      <div style="display:flex; gap:8px;">
+        <select id="custom-font-manager-dropdown" style="flex:1;">
+          <option value="">No fonts uploaded</option>
+        </select>
+        <button class="btn" id="delete-custom-font-btn" style="background:rgba(255,85,85,0.1); border-color:#ff5555; color:#ff5555; width:44px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">delete</span>
+        </button>
+      </div>
+      <p style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 8px;">Uploaded fonts are stored locally in IndexedDB.</p>
+    </div>
+
+    <div class="setting-group">
+      <label>Dock Placement</label>
+      <select id="dock-position">
+        <option value="left">Left Edge</option>
+        <option value="right">Right Edge</option>
+        <option value="top">Top Edge</option>
+        <option value="bottom">Bottom Edge</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>Focus Modes (Smart Switcher)</label>
+      <select id="focus-mode-selector">
+        <option value="all">Unrestricted (All Widgets)</option>
+        <option value="study">Study Mode</option>
+        <option value="media">Media Mode</option>
+        <option value="minimal">Minimal Mode</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>Profile Image (URL or Local File)</label>
+      <input type="url" id="profile-img-url" placeholder="https://example.com/avatar.jpg">
+      <input type="file" id="profile-file-input" accept="image/*" style="margin-top:8px;">
+    </div>
+
+    <div class="setting-group">
+      <label>Background Image / Video</label>
+      <input type="text" id="bg-url-input" placeholder="Paste media URL here...">
+      <div style="margin-top: 8px;">
+        <span style="font-size: 10px; color: var(--text-secondary);">Or upload local file:</span>
+        <input type="file" id="bg-file-input" accept="image/*,video/*">
+      </div>
+      <button class="btn" id="reset-bg-btn"
+        style="margin-top:12px; width:100%; border:1px solid var(--outline); background:transparent; color:var(--text-secondary);">Restore
+        Default Background</button>
+    </div>
+
+    <div class="setting-group">
+      <label>Spotify Embed URL/URI</label>
+      <input type="url" id="spotify-url-input" placeholder="Spotify tracking link or URI">
+    </div>
+
+    <div class="setting-group">
+      <h3 class="subtitle" style="margin-bottom:12px; font-size: 0.65rem;">Widget Visibility</h3>
+      <!-- Toggles auto generated or static -->
+      <div class="toggle-row">
+        <span>Clock & Weather</span>
+        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-clock" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Quick Links (Folders)</span>
+        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-folders" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Universal Search</span>
+        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-search" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Productivity Suite (Pomodoro)</span>
+        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-pomodoro" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Notepad</span>
+        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-notepad" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Media Player</span>
+        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-spotify" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Calculator</span>
+        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-calculator" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Link Target (New Tab)</span>
+        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-target-mode" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Local Media</span>
+        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-local-media" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Weather Module</span>
+        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-weather" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Task Manager</span>
+        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-tasks" checked>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <h3 class="subtitle" style="margin-bottom:12px; font-size: 0.65rem;">Workspace & Navigation</h3>
+      <button class="btn" id="open-link-manager" style="width:100%; margin-bottom:8px;">Manage Groups & Workspaces</button>
+      <button class="btn" id="open-news-settings" style="width:100%;">Global News Configuration</button>
+    </div>
+
+    <div class="setting-group">
+      <label>Data Portability & Network</label>
+      <div class="toggle-row">
+        <button class="btn" id="export-json-btn">Export Config JSON</button>
+      </div>
+      <div class="toggle-row">
+        <input type="file" id="import-json-input" accept=".json" style="display:none;">
+        <button class="btn" id="import-json-btn">Import Config JSON</button>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>Environment & Feed Config</label>
+      <select id="weather-location-input" class="glass-form-input" style="margin-bottom:8px; width:100%;">
+        <option value="Hyderabad">Hyderabad</option>
+        <option value="New York">New York</option>
+        <option value="London">London</option>
+        <option value="Tokyo">Tokyo</option>
+        <option value="Paris">Paris</option>
+        <option value="Berlin">Berlin</option>
+        <option value="Sydney">Sydney</option>
+        <option value="Dubai">Dubai</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label>System Settings</label>
+      <div class="toggle-row" style="margin-bottom:12px;">
+        <button class="btn" id="auto-arrange-btn" style="width:100%; border-color:var(--text-primary); color:var(--text-primary);">Snap-to-Grid Auto-Arrange</button>
+      </div>
+      <div class="toggle-row">
+        <span>Minimalist Top Bar (Compact Mode)</span>
+        <input type="checkbox" id="compact-mode-toggle" class="obsidian-toggle">
+      </div>
+      <div class="toggle-row">
+        <span>Grid Snap (20px)</span>
+        <input type="checkbox" id="grid-snap-toggle" class="obsidian-toggle">
+      </div>
+      <div class="toggle-row">
+        <span>Wi-Fi Status Icon Visibility</span>
+        <input type="checkbox" id="wifi-visible-toggle" class="obsidian-toggle" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Use 24-Hour Time Format</span>
+        <input type="checkbox" id="clock-format-toggle" class="obsidian-toggle" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Enable Cursor Trail & Particles</span>
+        <input type="checkbox" id="cursor-effects-toggle" class="obsidian-toggle" checked>
+      </div>
+    </div>
+
+    <div class="setting-group" style="margin-top: 40px; border-top: 1px solid var(--outline); padding-top: 20px;">
+      <h3 class="subtitle" style="color: #ff5555; margin-bottom: 12px;">Danger Zone</h3>
+      <button class="btn" id="factory-reset-btn"
+        style="background: rgba(255,85,85,0.1); border-color: #ff5555; color: #ff5555; width: 100%;">Factory Reset
+        System</button>
+      <p style="font-size: 0.65rem; color: var(--text-secondary); margin-top: 8px;">Deletes all IndexedDB binary files
+        and localized configs permanently.</p>
+    </div>
+  </div>
+
+  <!-- Command Palette (Ctrl+K) -->
+  <div id="command-palette">
+    <div style="font-size: 0.75rem; letter-spacing: 0.2em; color: var(--text-secondary); margin-bottom: 8px;">SEARCH THE
+      VOID (/yt, /g)</div>
+    <input type="text" id="cmd-input" placeholder="Query terminal...">
+  </div>
+
+  <!-- Workspace Manager Overlay -->
+  <div id="link-manager-overlay" class="immersive-app">
+    <button class="back-btn" id="close-link-manager">
+      <span class="material-symbols-outlined">close</span> Close Workspace
+    </button>
+    <div class="manager-body">
+      <h1 class="headline">Link & Workspace Manager</h1>
+      <div style="display:flex; gap: 20px;">
+        <div style="flex:1;">
+          <h3 class="subtitle">Groups (Workspaces)</h3>
+          <ul id="workspace-list" class="manager-list"></ul>
+          <div style="display:flex; gap: 8px; margin-top: 10px;">
+            <input type="text" id="new-workspace-name" placeholder="New Workspace">
+            <button class="btn" id="add-workspace-btn">+</button>
+          </div>
+        </div>
+        <div style="flex:2;">
+          <h3 class="subtitle">Links in selected group</h3>
+          <ul id="link-item-list" class="manager-list"></ul>
+          <div class="link-edit-form"
+            style="margin-top:20px; background:var(--surface); padding:16px; border-radius:8px;">
+            <input type="text" id="link-edit-title" placeholder="Link Title" class="glass-form-input"
+              style="margin-bottom:8px;">
+            <input type="text" id="link-edit-url" placeholder="URL or Local Path (file:///)" class="glass-form-input"
+              style="margin-bottom:8px;">
+            <div style="display:flex; gap: 8px; margin-bottom:8px;">
+              <select id="link-icon-type" class="glass-form-input">
+                <option value="auto">Auto-Favicon</option>
+                <option value="local">Local Image Upload</option>
+                <option value="material">Material Icon Name</option>
+              </select>
+              <input type="file" id="link-local-img" class="glass-form-input" style="display:none;" accept="image/*">
+              <input type="text" id="link-material-name" class="glass-form-input" placeholder="Icon name (e.g. web)">
+            </div>
+            <div style="display:flex; gap: 8px; align-items:center; margin-bottom:8px;">
+              <input type="checkbox" id="link-is-favorite"> <label for="link-is-favorite">Pin to Dock (Favorite)</label>
+            </div>
+            <button class="btn" id="save-link-btn" style="width:100%;">Add / Update Link</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- News Configuration Overlay -->
+  <div id="news-settings-overlay" class="immersive-app">
+    <button class="back-btn" id="close-news-settings">
+      <span class="material-symbols-outlined">close</span> Close Settings
+    </button>
+    <div class="manager-body">
+      <h1 class="headline" style="text-align:center;">Global News Configuration</h1>
+      
+      <div style="width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px;">
+        
+        <!-- Toggle Section -->
+        <div style="background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--outline);">
+          <h3 class="subtitle" style="margin-bottom:20px;">Widget Visibility</h3>
+          <div class="toggle-row" style="margin-bottom: 12px;">
+            <span>RSS News Ticker (Marquee)</span>
+            <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-rss" checked>
+          </div>
+          <div class="toggle-row">
+            <span>Detailed News Card</span>
+            <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-news-1" checked>
+          </div>
+        </div>
+
+        <!-- Custom Feed Section -->
+        <div style="background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--outline);">
+          <h3 class="subtitle" style="margin-bottom:20px;">Custom Global Feed</h3>
+          <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 16px;">
+            Enter a custom RSS Feed URL to override the default scrolling ticker.
+          </p>
+          <input type="url" id="rss-feed-url-input" class="glass-form-input" placeholder="https://example.com/rss.xml" style="width:100%; padding:12px;">
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- WIDGETS CONTAINER -->
+  <main id="workspace">
+    
+    <!-- Screen 1: Primary Dashboard -->
+    <section class="os-screen" id="main-screen">
+      <!-- Scroll Hint -->
+      <div class="scroll-hint" id="main-scroll-hint">
+        <span>Scroll for Shelf</span>
+        <span class="material-symbols-outlined">expand_more</span>
+      </div>
+
+      <!-- Clock Widget -->
+    <div class="glass-widget borderless-widget" id="widget-clock"
+      style="top: 100px; left: 50%; transform: translateX(-50%); text-align:center;">
+      <div class="widget-header" style="justify-content:center; gap:8px;">
+        <span class="widget-title" style="display:none;">Temporal</span>
+        <span class="material-symbols-outlined widget-icon" id="toggle-12-24"
+          style="cursor:pointer; opacity:0; transition:opacity 0.3s;" title="Toggle 12/24hr">schedule</span>
+      </div>
+      <div id="clock-display" class="headline">00:00</div>
+      <div class="subtitle" style="margin-top: 8px; text-transform:uppercase;" id="date-display">System Active</div>
+    </div>
+
+    <!-- Quick Links (Folders/Smart Groups) -->
+    <div class="glass-widget" id="widget-folders" style="top: 150px; left: 140px;">
+      <div class="widget-header">
+        <span class="widget-title">Archives & Workspaces</span>
+        <span class="material-symbols-outlined widget-icon">folder_open</span>
+      </div>
+      <div style="margin-bottom:8px; display:flex; gap:8px;">
+        <select id="active-workspace-selector"
+          style="flex:1; background:var(--surface); border:1px solid var(--outline); color:var(--text-on-surface); padding:4px; border-radius:4px;">
+        </select>
+      </div>
+      <div class="link-list" id="link-list-container">
+        <!-- populated by js -->
+      </div>
+      <div style="margin-top: 16px; border-top: 1px solid var(--outline); padding-top: 8px;">
+        <span class="subtitle" style="font-size: 8px;">Recent Activity</span>
+        <div id="recent-activity-list" style="display:flex; flex-direction:column; gap:4px; margin-top:4px;"></div>
+      </div>
+    </div>
+
+    <!-- Universal Search (The Void) -->
+    <div class="glass-widget borderless-widget" id="widget-search"
+      style="top: 350px; left: 50%; transform: translateX(-50%); width:500px;">
+      <div class="widget-header" style="justify-content:center; margin-bottom:0;">
+        <span class="widget-title" style="display:none;">Query Engine</span>
+        <span class="material-symbols-outlined widget-icon"
+          style="opacity:0; transition:opacity 0.3s; position:absolute; top: -20px;">search</span>
+      </div>
+      <div class="search-container" style="flex-direction:row;">
+        <input type="text" id="universal-search-input" placeholder="Search the void (/yt, /w, /g)..."
+          style="flex:1; background:transparent; border:none; border-bottom:1px solid var(--outline); color:var(--text-on-surface); outline:none; padding:12px; font-size:1.5rem; text-align:center;">
+      </div>
+    </div>
+
+    <!-- Pomodoro -->
+    <div class="glass-widget" id="widget-pomodoro" style="top: 150px; right: 140px;">
+      <div class="widget-header">
+        <span class="widget-title">Flow State</span>
+        <span class="material-symbols-outlined widget-icon">timer</span>
+      </div>
+      <div style="display:flex; justify-content:center; gap:8px; align-items:center;">
+        <input type="number" id="pomodoro-min-input" value="25" min="1" max="99"
+          style="width:50px; text-align:center; background:transparent; border:none; font-size:2.5rem; color:var(--text-on-surface); font-family:var(--font-headline);">
+        <span style="font-size:2.5rem; color:var(--text-on-surface); font-family:var(--font-headline);">:</span>
+        <span id="pomodoro-sec-display"
+          style="font-size: 2.5rem; text-align: center; font-family:var(--font-headline); width:50px;">00</span>
+      </div>
+
+      <div class="pomodoro-controls">
+        <button class="btn" id="pomodoro-start">Start</button>
+        <button class="btn" id="pomodoro-reset">Reset</button>
+      </div>
+    </div>
+
+    <!-- Professional Calculator -->
+    <div class="glass-widget" id="widget-calculator" style="top: 350px; right: 140px; width: 250px;">
+      <div class="widget-header">
+        <span class="widget-title">Calculus</span>
+        <span class="material-symbols-outlined widget-icon">calculate</span>
+      </div>
+      <input type="text" id="calc-display" disabled
+        style="width:100%; text-align:right; font-size:1.5rem; padding:8px; margin-bottom:12px; border:none; background:rgba(0,0,0,0.3); color:var(--text-on-surface); border-radius:6px;">
+      <div class="calc-grid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px;">
+        <button class="btn calc-btn" data-val="C"
+          style="grid-column: span 2; background:rgba(255,100,100,0.2);">C</button>
+        <button class="btn calc-btn" data-val="<-">&larr;</button>
+        <button class="btn calc-btn" data-val="/">/</button>
+        <button class="btn calc-btn" data-val="7">7</button>
+        <button class="btn calc-btn" data-val="8">8</button>
+        <button class="btn calc-btn" data-val="9">9</button>
+        <button class="btn calc-btn" data-val="*">x</button>
+        <button class="btn calc-btn" data-val="4">4</button>
+        <button class="btn calc-btn" data-val="5">5</button>
+        <button class="btn calc-btn" data-val="6">6</button>
+        <button class="btn calc-btn" data-val="-">-</button>
+        <button class="btn calc-btn" data-val="1">1</button>
+        <button class="btn calc-btn" data-val="2">2</button>
+        <button class="btn calc-btn" data-val="3">3</button>
+        <button class="btn calc-btn" data-val="+">+</button>
+        <button class="btn calc-btn" data-val="0" style="grid-column: span 2;">0</button>
+        <button class="btn calc-btn" data-val=".">.</button>
+        <button class="btn calc-btn" data-val="="
+          style="background:var(--text-primary); color:var(--bg-base); font-weight:bold;">=</button>
+      </div>
+    </div>
+
+    <!-- Notepad -->
+    <div class="glass-widget" id="widget-notepad" style="bottom: 80px; right: 140px;">
+      <div class="widget-header">
+        <span class="widget-title">Scratchpad</span>
+        <span class="material-symbols-outlined widget-icon">edit_document</span>
+      </div>
+      <textarea id="notepad-input" placeholder="Capture thoughts..."></textarea>
+    </div>
+
+    <!-- Spotify Player -->
+    <div class="glass-widget borderless-widget" id="widget-spotify" style="bottom: 80px; left: 140px;">
+      <div class="widget-header">
+        <span class="widget-title">Audio Stream</span>
+        <span class="material-symbols-outlined widget-icon">headphones</span>
+      </div>
+    <iframe id="spotify-iframe" src="https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+    </div>
+
+    <!-- Link Target Toggle Widget -->
+    <div class="glass-widget borderless-widget" id="widget-target-mode" style="top: 500px; left: 50%; transform: translateX(-50%); width: 80px; padding: 10px; display: flex; justify-content: center; align-items: center;">
+      <input type="checkbox" id="link-target-toggle" class="obsidian-toggle" title="Toggle Link Target (Same/New Tab)">
+    </div>
+
+    <!-- Local Media Controls -->
+    <div class="glass-widget" id="widget-local-media" style="top: 200px; right: 420px; width: 280px;">
+      <div class="widget-header">
+        <span class="widget-title">System Audio</span>
+        <span class="material-symbols-outlined widget-icon">speaker_group</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="overflow:hidden;">
+            <div id="local-media-title" style="font-weight:bold; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">No Media Playing</div>
+            <div id="local-media-artist" style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">Unknown Artist</div>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; gap: 8px;">
+          <button class="btn local-media-btn" data-action="prev"><span class="material-symbols-outlined">skip_previous</span></button>
+          <button class="btn local-media-btn" data-action="play_pause" id="local-media-play-btn"><span class="material-symbols-outlined">play_arrow</span></button>
+          <button class="btn local-media-btn" data-action="next"><span class="material-symbols-outlined">skip_next</span></button>
+        </div>
+        <div style="display:flex; align-items:center; gap: 8px;">
+          <span class="material-symbols-outlined" style="font-size:16px;">volume_down</span>
+          <input type="range" id="local-media-vol" min="0" max="100" value="50" style="flex:1;">
+          <span class="material-symbols-outlined" style="font-size:16px;">volume_up</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Glassmorphic Weather -->
+    <div class="glass-widget" id="widget-weather" style="top: 100px; left: 420px; width: 220px; text-align:center;">
+      <div id="weather-location-name" class="subtitle" style="font-size: 0.65rem; margin-bottom: 15px; opacity: 0.8; color: var(--text-secondary);">LOCAL AREA</div>
+      <div class="widget-header" style="justify-content:center; display:none;">
+        <span class="widget-title" style="display:none;">Atmosphere</span>
+        <span class="material-symbols-outlined widget-icon" style="opacity:0; transition:opacity 0.3s; position:absolute; top:-20px;">thermostat</span>
+      </div>
+      <div class="weather-current-section">
+        <span class="material-symbols-outlined" id="weather-icon-main" style="font-size:3rem; color:var(--text-primary);">cloud</span>
+        <div id="weather-temp-main" class="headline" style="font-size:2.5rem;">--°</div>
+        <div class="subtitle" id="weather-desc-main" style="margin-top:4px;">Loading...</div>
+      </div>
+      <div id="weather-forecast">
+      </div>
+    </div>
+
+    <!-- RSS News Ticker -->
+    <div class="glass-widget borderless-widget" id="widget-rss" style="bottom: 20px; left: 50%; transform: translateX(-50%); width: 600px; padding: 12px 20px;">
+      <div class="widget-header" style="margin-bottom:0px; display:none;">
+        <span class="widget-title">Global Feed</span>
+      </div>
+      <div style="display:flex; align-items:center; overflow:hidden; white-space:nowrap;">
+        <span class="material-symbols-outlined" style="margin-right:12px; color:var(--text-accent);">rss_feed</span>
+        <div id="rss-ticker-container" style="flex:1; overflow:hidden; position:relative;">
+          <div id="rss-ticker-content" style="display:inline-block; white-space:nowrap; position:relative;">Loading feeds...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kanban / Task Manager -->
+    <div class="glass-widget" id="widget-tasks" style="bottom: 200px; right: 140px; width: 300px; max-height: 400px; display:flex; flex-direction:column;">
+      <div class="widget-header">
+        <span class="widget-title">Task Core</span>
+        <span class="material-symbols-outlined widget-icon">checklist</span>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <input type="text" id="task-input" placeholder="New task..." style="flex:1; background:var(--surface-bright); border:1px solid var(--outline); color:var(--text-on-surface); padding:8px; border-radius:4px;">
+        <button class="btn" id="task-add-btn" style="padding:8px 12px;">+</button>
+      </div>
+      <ul id="task-list" style="list-style:none; padding:0; margin:0; flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
+        <!-- Tasks dynamically populated here -->
+      </ul>
+    </div>
+
+    <!-- News Card 1 -->
+    <div class="glass-widget news-card" id="widget-news-1" style="top: 400px; left: 20px; width: 350px; height: 320px; display:flex; flex-direction:column;">
+      <div class="widget-header">
+        <select class="news-region-select" data-slot="1" style="background:transparent; border:none; color:var(--text-primary); font-size: 10px; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; outline:none;">
+          <option value="india">India</option>
+          <option value="georgia">Georgia</option>
+          <option value="japan">Japan</option>
+          <option value="china">China</option>
+          <option value="uk">UK</option>
+          <option value="us">USA</option>
+          <option value="canada">Canada</option>
+        </select>
+        <span class="material-symbols-outlined widget-icon" style="font-size:16px;">article</span>
+      </div>
+      <div id="news-content-1" class="news-content-list" style="flex:1; overflow-y:auto; padding-right:4px;">
+        <div style="opacity:0.5; padding:20px; text-align:center;">Initializing feed...</div>
+      </div>
+    </div>
+
+    </section>
+
+    <!-- Screen 2: Secondary Shelf -->
+    <section class="os-screen" id="extra-shelf">
+      <div style="position:absolute; top:40px; left:50%; transform:translateX(-50%); opacity:0.3; letter-spacing:0.5em; text-transform:uppercase; font-size:0.7rem;">Secondary Shelf</div>
+    </section>
+
+  </main>
+
+  <!-- Immersive Apps Overlays -->
+  <div id="media-viewer-hub" class="immersive-app">
+    <button class="back-btn" id="close-media-viewer">
+      <span class="material-symbols-outlined">close</span> Close Hub
+    </button>
+    <div style="width: 80%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; align-items:center;">
+      <h1 class="headline" style="text-align:center;">Media Node</h1>
+      <div style="display:flex; gap: 20px; width: 100%; justify-content:center; margin-bottom:20px;">
+        <button class="btn" id="tab-image">Image Viewer</button>
+        <button class="btn" id="tab-video">Video Viewer</button>
+      </div>
+
+      <div id="panel-image" style="width: 100%; display: flex; flex-direction: column; gap: 20px;">
+        <div class="media-container" style="max-height: 50vh;">
+          <img id="image-display" src="https://via.placeholder.com/800x600.png?text=No+Image+Loaded" alt="User Image">
+        </div>
+        <div class="file-inputs"
+          style="background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
+          <input type="url" id="image-url-input" placeholder="Paste Image URL">
+          <input type="file" id="image-file-input" accept="image/*">
+        </div>
+      </div>
+
+      <div id="panel-video" style="width: 100%; display: none; flex-direction: column; gap: 20px;">
+        <div class="media-container" style="max-height: 50vh;">
+          <video id="video-display" controls muted>
+            <source src="" type="video/mp4">
+          </video>
+        </div>
+        <div class="file-inputs"
+          style="background: var(--surface); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
+          <input type="url" id="video-url-input" placeholder="Paste Video URL (mp4)">
+          <input type="file" id="video-file-input" accept="video/*">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js');
+      });
+    }
+  </script>
+  <!-- SYSTEM MODAL (Universal Confirmation) -->
+  <div id="os-modal" class="modal-overlay">
+    <div class="modal-content glass-widget">
+      <h3 id="modal-title" style="margin-top:0; font-family:var(--font-headline);">System Confirmation</h3>
+      <p id="modal-message" style="margin:20px 0; font-size:0.9rem; color:var(--text-secondary);">Are you sure you want to proceed?</p>
+      <div class="modal-actions" style="display:flex; gap:12px; margin-top:12px;">
+        <button class="btn" id="modal-cancel">Cancel</button>
+        <button class="btn" id="modal-confirm" style="background:rgba(255,85,85,0.2); border-color:#ff5555; color:#ff5555; flex:1;">Confirm Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Context Menu -->
+  <div id="custom-context-menu" class="glass-widget" style="display:none; position:fixed; z-index:9999; padding:8px; width:180px;">
+    <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:4px; font-size:0.85rem;">
+      <li class="ctx-menu-item" data-action="auto-arrange"><span class="material-symbols-outlined" style="font-size:16px;">grid_view</span> Snap to Grid</li>
+      <li class="ctx-menu-item" data-action="open-settings"><span class="material-symbols-outlined" style="font-size:16px;">settings</span> Control Center</li>
+      <li class="ctx-menu-item" data-action="change-bg"><span class="material-symbols-outlined" style="font-size:16px;">wallpaper</span> Change Background</li>
+    </ul>
+  </div>
+</body>
+
+</html>
