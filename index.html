@@ -30,16 +30,12 @@
     <div class="logo-text" style="display:flex; align-items:center; gap: 8px;">
       <span id="os-brand-text">OBSIDIAN.OS</span>
       <button id="edit-mode-toggle" class="edit-mode-btn">Edit Mode</button>
-      <button id="bg-video-control" class="topbar-icon-btn material-symbols-outlined" title="Pause Background" style="display:none;">pause</button>
-      <button id="legibility-toggle" class="topbar-icon-btn material-symbols-outlined" title="Toggle Legibility Mode">visibility</button>
+      <button id="bg-video-control" class="topbar-icon-btn material-symbols-outlined" data-tooltip="Pause Background" style="display:none;">pause</button>
+      <button id="legibility-toggle" class="topbar-icon-btn material-symbols-outlined" data-tooltip="Toggle Legibility Mode">visibility</button>
     </div>
+
     <div class="status-icons">
-      <span class="material-symbols-outlined" id="wifi-icon" title="Connected: Vastra_Veda_5G">wifi</span>
-      <div class="battery-container" title="Battery Status">
-        <span class="material-symbols-outlined" id="battery-icon">battery_full</span>
-        <span id="battery-percent">100%</span>
-      </div>
-      <img id="profile-icon-img" src="https://via.placeholder.com/100.png?text=U" alt="Profile" title="Master Settings">
+      <img id="profile-icon-img" src="https://via.placeholder.com/100.png?text=U" alt="Profile" data-tooltip="Master Settings">
     </div>
   </header>
 
@@ -63,51 +59,58 @@
       style="position:absolute; top:40px; right:24px; background:transparent; border:none; cursor:pointer; color:var(--text-primary); font-size:24px;">close</button>
     <h2>Control Center</h2>
 
-    <div class="setting-group">
-      <label>Global Theme</label>
-      <select id="theme-selector">
-        <option value="default">Stitch Default</option>
-        <option value="oled-black">OLED Black (Pure)</option>
-        <option value="frost-white">Frost White</option>
-        <option value="mocha-brown">Mocha Brown</option>
-      </select>
-    </div>
-
-    <div class="setting-group">
-      <label>Typography Engine (Global)</label>
-      <select id="global-font-selector">
-        <optgroup label="Sans-Serif (Modern)">
-          <option value="var(--font-body)">Default (Manrope)</option>
-          <option value="'Inter', sans-serif">Inter</option>
-          <option value="'Montserrat', sans-serif">Montserrat</option>
-          <option value="'Poppins', sans-serif">Poppins</option>
-          <option value="'Source Sans 3', sans-serif">Source Sans 3</option>
-          <option value="'System-UI', sans-serif">System UI</option>
-        </optgroup>
-        <optgroup label="Serif (Elegant)">
-          <option value="'Playfair Display', serif">Playfair Display</option>
-          <option value="'Lora', serif">Lora</option>
-          <option value="'Merriweather', serif">Merriweather</option>
-          <option value="'EB Garamond', serif">EB Garamond</option>
-          <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
-        </optgroup>
-        <optgroup label="Monospace (Technical)">
-          <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
-          <option value="'Fira Code', monospace">Fira Code</option>
-          <option value="'Space Mono', monospace">Space Mono</option>
-          <option value="'Source Code Pro', monospace">Source Code Pro</option>
-        </optgroup>
-        <optgroup label="Display / Decorative">
-          <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
-          <option value="'Cinzel', serif">Cinzel</option>
-          <option value="'Abril Fatface', serif">Abril Fatface</option>
-          <option value="'UnifrakturMaguntia', cursive">UnifrakturMaguntia (Old English)</option>
-          <option value="'Syncopate', sans-serif">Syncopate</option>
-        </optgroup>
-        <optgroup label="Custom Uploads" id="global-custom-fonts-group">
-          <!-- Dynamically populated -->
-        </optgroup>
-      </select>
+    <div class="collapsible-section">
+      <div class="collapsible-header" onclick="this.nextElementSibling.classList.toggle('collapsed'); this.querySelector('.collapsible-arrow').classList.toggle('collapsed');">
+        <label>Visual Identity</label>
+        <span class="material-symbols-outlined collapsible-arrow">expand_more</span>
+      </div>
+      <div class="collapsible-content collapsed">
+        <div class="setting-group">
+          <label>Global Theme</label>
+          <select id="theme-selector">
+            <option value="default">Stitch Default</option>
+            <option value="oled-black">OLED Black (Pure)</option>
+            <option value="frost-white">Frost White</option>
+            <option value="mocha-brown">Mocha Brown</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label>Typography Engine (Global)</label>
+          <select id="global-font-selector">
+            <optgroup label="Sans-Serif (Modern)">
+              <option value="var(--font-body)">Default (Manrope)</option>
+              <option value="'Inter', sans-serif">Inter</option>
+              <option value="'Montserrat', sans-serif">Montserrat</option>
+              <option value="'Poppins', sans-serif">Poppins</option>
+              <option value="'Source Sans 3', sans-serif">Source Sans 3</option>
+              <option value="'System-UI', sans-serif">System UI</option>
+            </optgroup>
+            <optgroup label="Serif (Elegant)">
+              <option value="'Playfair Display', serif">Playfair Display</option>
+              <option value="'Lora', serif">Lora</option>
+              <option value="'Merriweather', serif">Merriweather</option>
+              <option value="'EB Garamond', serif">EB Garamond</option>
+              <option value="'Cormorant Garamond', serif">Cormorant Garamond</option>
+            </optgroup>
+            <optgroup label="Monospace (Technical)">
+              <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+              <option value="'Fira Code', monospace">Fira Code</option>
+              <option value="'Space Mono', monospace">Space Mono</option>
+              <option value="'Source Code Pro', monospace">Source Code Pro</option>
+            </optgroup>
+            <optgroup label="Display / Decorative">
+              <option value="'Space Grotesk', sans-serif">Space Grotesk</option>
+              <option value="'Cinzel', serif">Cinzel</option>
+              <option value="'Abril Fatface', serif">Abril Fatface</option>
+              <option value="'UnifrakturMaguntia', cursive">UnifrakturMaguntia (Old English)</option>
+              <option value="'Syncopate', sans-serif">Syncopate</option>
+            </optgroup>
+            <optgroup label="Custom Uploads" id="global-custom-fonts-group">
+              <!-- Dynamically populated -->
+            </optgroup>
+          </select>
+        </div>
+      </div>
     </div>
 
     <div class="setting-group">
@@ -152,7 +155,6 @@
       <select id="dock-position">
         <option value="left">Left Edge</option>
         <option value="right">Right Edge</option>
-        <option value="top">Top Edge</option>
         <option value="bottom">Bottom Edge</option>
       </select>
     </div>
@@ -190,52 +192,45 @@
       <input type="url" id="spotify-url-input" placeholder="Spotify tracking link or URI">
     </div>
 
-    <div class="setting-group">
-      <h3 class="subtitle" style="margin-bottom:12px; font-size: 0.65rem;">Widget Visibility</h3>
-      <!-- Toggles auto generated or static -->
-      <div class="toggle-row">
-        <span>Clock & Weather</span>
-        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-clock" checked>
+    <div class="collapsible-section">
+      <div class="collapsible-header" onclick="this.nextElementSibling.classList.toggle('collapsed'); this.querySelector('.collapsible-arrow').classList.toggle('collapsed');">
+        <label>Widget Layout</label>
+        <span class="material-symbols-outlined collapsible-arrow">expand_more</span>
       </div>
-      <div class="toggle-row">
-        <span>Quick Links (Folders)</span>
-        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-folders" checked>
-      </div>
-      <div class="toggle-row">
-        <span>Universal Search</span>
-        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-search" checked>
-      </div>
-      <div class="toggle-row">
-        <span>Productivity Suite (Pomodoro)</span>
-        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-pomodoro" checked>
-      </div>
-      <div class="toggle-row">
-        <span>Notepad</span>
-        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-notepad" checked>
-      </div>
-      <div class="toggle-row">
-        <span>Media Player</span>
-        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-spotify" checked>
-      </div>
-      <div class="toggle-row">
-        <span>Calculator</span>
-        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-calculator" checked>
-      </div>
-      <div class="toggle-row">
-        <span>Link Target (New Tab)</span>
-        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-target-mode" checked>
-      </div>
-      <div class="toggle-row">
-        <span>Local Media</span>
-        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-local-media" checked>
-      </div>
-      <div class="toggle-row">
-        <span>Weather Module</span>
-        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-weather" checked>
-      </div>
-      <div class="toggle-row">
-        <span>Task Manager</span>
-        <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-tasks" checked>
+      <div class="collapsible-content collapsed">
+        <div class="setting-group">
+          <h3 class="subtitle" style="margin-bottom:12px; font-size: 0.65rem;">Visibility Toggles</h3>
+          <div class="toggle-row">
+            <span>Clock</span>
+            <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-clock" checked>
+          </div>
+          <div class="toggle-row">
+            <span>Quick Links</span>
+            <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-folders" checked>
+          </div>
+          <div class="toggle-row">
+            <span>Universal Search</span>
+            <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-search" checked>
+          </div>
+          <div class="toggle-row">
+            <span>Productivity Suite</span>
+            <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-pomodoro" checked>
+          </div>
+          <div class="toggle-row">
+            <span>Notepad</span>
+            <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-notepad" checked>
+          </div>
+          <div class="toggle-row">
+            <span>Media Player</span>
+            <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-spotify" checked>
+          </div>
+          <div class="toggle-row">
+            <span>Calculator</span>
+            <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-calculator" checked>
+          </div>
+
+
+        </div>
       </div>
     </div>
 
@@ -256,19 +251,7 @@
       </div>
     </div>
 
-    <div class="setting-group">
-      <label>Environment & Feed Config</label>
-      <select id="weather-location-input" class="glass-form-input" style="margin-bottom:8px; width:100%;">
-        <option value="Hyderabad">Hyderabad</option>
-        <option value="New York">New York</option>
-        <option value="London">London</option>
-        <option value="Tokyo">Tokyo</option>
-        <option value="Paris">Paris</option>
-        <option value="Berlin">Berlin</option>
-        <option value="Sydney">Sydney</option>
-        <option value="Dubai">Dubai</option>
-      </select>
-    </div>
+
 
     <div class="setting-group">
       <label>System Settings</label>
@@ -282,10 +265,6 @@
       <div class="toggle-row">
         <span>Grid Snap (20px)</span>
         <input type="checkbox" id="grid-snap-toggle" class="obsidian-toggle">
-      </div>
-      <div class="toggle-row">
-        <span>Wi-Fi Status Icon Visibility</span>
-        <input type="checkbox" id="wifi-visible-toggle" class="obsidian-toggle" checked>
       </div>
       <div class="toggle-row">
         <span>Use 24-Hour Time Format</span>
@@ -358,61 +337,17 @@
     </div>
   </div>
 
-  <!-- News Configuration Overlay -->
-  <div id="news-settings-overlay" class="immersive-app">
-    <button class="back-btn" id="close-news-settings">
-      <span class="material-symbols-outlined">close</span> Close Settings
-    </button>
-    <div class="manager-body">
-      <h1 class="headline" style="text-align:center;">Global News Configuration</h1>
-      
-      <div style="width: 100%; max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px;">
-        
-        <!-- Toggle Section -->
-        <div style="background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--outline);">
-          <h3 class="subtitle" style="margin-bottom:20px;">Widget Visibility</h3>
-          <div class="toggle-row" style="margin-bottom: 12px;">
-            <span>RSS News Ticker (Marquee)</span>
-            <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-rss" checked>
-          </div>
-          <div class="toggle-row">
-            <span>Detailed News Card</span>
-            <input type="checkbox" class="widget-toggle obsidian-toggle" data-target="widget-news-1" checked>
-          </div>
-        </div>
-
-        <!-- Custom Feed Section -->
-        <div style="background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--outline);">
-          <h3 class="subtitle" style="margin-bottom:20px;">Custom Global Feed</h3>
-          <p style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 16px;">
-            Enter a custom RSS Feed URL to override the default scrolling ticker.
-          </p>
-          <input type="url" id="rss-feed-url-input" class="glass-form-input" placeholder="https://example.com/rss.xml" style="width:100%; padding:12px;">
-        </div>
-
-      </div>
-    </div>
-  </div>
 
   <!-- WIDGETS CONTAINER -->
   <main id="workspace">
     
+
     <!-- Screen 1: Primary Dashboard -->
     <section class="os-screen" id="main-screen">
-      <!-- Scroll Hint -->
-      <div class="scroll-hint" id="main-scroll-hint">
-        <span>Scroll for Shelf</span>
-        <span class="material-symbols-outlined">expand_more</span>
-      </div>
 
       <!-- Clock Widget -->
     <div class="glass-widget borderless-widget" id="widget-clock"
       style="top: 100px; left: 50%; transform: translateX(-50%); text-align:center;">
-      <div class="widget-header" style="justify-content:center; gap:8px;">
-        <span class="widget-title" style="display:none;">Temporal</span>
-        <span class="material-symbols-outlined widget-icon" id="toggle-12-24"
-          style="cursor:pointer; opacity:0; transition:opacity 0.3s;" title="Toggle 12/24hr">schedule</span>
-      </div>
       <div id="clock-display" class="headline">00:00</div>
       <div class="subtitle" style="margin-top: 8px; text-transform:uppercase;" id="date-display">System Active</div>
     </div>
@@ -420,7 +355,7 @@
     <!-- Quick Links (Folders/Smart Groups) -->
     <div class="glass-widget" id="widget-folders" style="top: 150px; left: 140px;">
       <div class="widget-header">
-        <span class="widget-title">Archives & Workspaces</span>
+        <span class="widget-title">Workspaces</span>
         <span class="material-symbols-outlined widget-icon">folder_open</span>
       </div>
       <div style="margin-bottom:8px; display:flex; gap:8px;">
@@ -430,10 +365,6 @@
       </div>
       <div class="link-list" id="link-list-container">
         <!-- populated by js -->
-      </div>
-      <div style="margin-top: 16px; border-top: 1px solid var(--outline); padding-top: 8px;">
-        <span class="subtitle" style="font-size: 8px;">Recent Activity</span>
-        <div id="recent-activity-list" style="display:flex; flex-direction:column; gap:4px; margin-top:4px;"></div>
       </div>
     </div>
 
@@ -524,104 +455,15 @@
 
     <!-- Link Target Toggle Widget -->
     <div class="glass-widget borderless-widget" id="widget-target-mode" style="top: 500px; left: 50%; transform: translateX(-50%); width: 80px; padding: 10px; display: flex; justify-content: center; align-items: center;">
-      <input type="checkbox" id="link-target-toggle" class="obsidian-toggle" title="Toggle Link Target (Same/New Tab)">
+      <input type="checkbox" id="link-target-toggle" class="obsidian-toggle" data-tooltip="Toggle Link Target (Same/New Tab)">
     </div>
 
-    <!-- Local Media Controls -->
-    <div class="glass-widget" id="widget-local-media" style="top: 200px; right: 420px; width: 280px;">
-      <div class="widget-header">
-        <span class="widget-title">System Audio</span>
-        <span class="material-symbols-outlined widget-icon">speaker_group</span>
-      </div>
-      <div style="display:flex; flex-direction:column; gap:12px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div style="overflow:hidden;">
-            <div id="local-media-title" style="font-weight:bold; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">No Media Playing</div>
-            <div id="local-media-artist" style="font-size:0.75rem; color:var(--text-secondary); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">Unknown Artist</div>
-          </div>
-        </div>
-        <div style="display:flex; justify-content:space-between; gap: 8px;">
-          <button class="btn local-media-btn" data-action="prev"><span class="material-symbols-outlined">skip_previous</span></button>
-          <button class="btn local-media-btn" data-action="play_pause" id="local-media-play-btn"><span class="material-symbols-outlined">play_arrow</span></button>
-          <button class="btn local-media-btn" data-action="next"><span class="material-symbols-outlined">skip_next</span></button>
-        </div>
-        <div style="display:flex; align-items:center; gap: 8px;">
-          <span class="material-symbols-outlined" style="font-size:16px;">volume_down</span>
-          <input type="range" id="local-media-vol" min="0" max="100" value="50" style="flex:1;">
-          <span class="material-symbols-outlined" style="font-size:16px;">volume_up</span>
-        </div>
-      </div>
-    </div>
 
-    <!-- Glassmorphic Weather -->
-    <div class="glass-widget" id="widget-weather" style="top: 100px; left: 420px; width: 220px; text-align:center;">
-      <div id="weather-location-name" class="subtitle" style="font-size: 0.65rem; margin-bottom: 15px; opacity: 0.8; color: var(--text-secondary);">LOCAL AREA</div>
-      <div class="widget-header" style="justify-content:center; display:none;">
-        <span class="widget-title" style="display:none;">Atmosphere</span>
-        <span class="material-symbols-outlined widget-icon" style="opacity:0; transition:opacity 0.3s; position:absolute; top:-20px;">thermostat</span>
-      </div>
-      <div class="weather-current-section">
-        <span class="material-symbols-outlined" id="weather-icon-main" style="font-size:3rem; color:var(--text-primary);">cloud</span>
-        <div id="weather-temp-main" class="headline" style="font-size:2.5rem;">--°</div>
-        <div class="subtitle" id="weather-desc-main" style="margin-top:4px;">Loading...</div>
-      </div>
-      <div id="weather-forecast">
-      </div>
-    </div>
 
-    <!-- RSS News Ticker -->
-    <div class="glass-widget borderless-widget" id="widget-rss" style="bottom: 20px; left: 50%; transform: translateX(-50%); width: 600px; padding: 12px 20px;">
-      <div class="widget-header" style="margin-bottom:0px; display:none;">
-        <span class="widget-title">Global Feed</span>
-      </div>
-      <div style="display:flex; align-items:center; overflow:hidden; white-space:nowrap;">
-        <span class="material-symbols-outlined" style="margin-right:12px; color:var(--text-accent);">rss_feed</span>
-        <div id="rss-ticker-container" style="flex:1; overflow:hidden; position:relative;">
-          <div id="rss-ticker-content" style="display:inline-block; white-space:nowrap; position:relative;">Loading feeds...</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Kanban / Task Manager -->
-    <div class="glass-widget" id="widget-tasks" style="bottom: 200px; right: 140px; width: 300px; max-height: 400px; display:flex; flex-direction:column;">
-      <div class="widget-header">
-        <span class="widget-title">Task Core</span>
-        <span class="material-symbols-outlined widget-icon">checklist</span>
-      </div>
-      <div style="display:flex; gap:8px; margin-bottom:12px;">
-        <input type="text" id="task-input" placeholder="New task..." style="flex:1; background:var(--surface-bright); border:1px solid var(--outline); color:var(--text-on-surface); padding:8px; border-radius:4px;">
-        <button class="btn" id="task-add-btn" style="padding:8px 12px;">+</button>
-      </div>
-      <ul id="task-list" style="list-style:none; padding:0; margin:0; flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px;">
-        <!-- Tasks dynamically populated here -->
-      </ul>
-    </div>
-
-    <!-- News Card 1 -->
-    <div class="glass-widget news-card" id="widget-news-1" style="top: 400px; left: 20px; width: 350px; height: 320px; display:flex; flex-direction:column;">
-      <div class="widget-header">
-        <select class="news-region-select" data-slot="1" style="background:transparent; border:none; color:var(--text-primary); font-size: 10px; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; outline:none;">
-          <option value="india">India</option>
-          <option value="georgia">Georgia</option>
-          <option value="japan">Japan</option>
-          <option value="china">China</option>
-          <option value="uk">UK</option>
-          <option value="us">USA</option>
-          <option value="canada">Canada</option>
-        </select>
-        <span class="material-symbols-outlined widget-icon" style="font-size:16px;">article</span>
-      </div>
-      <div id="news-content-1" class="news-content-list" style="flex:1; overflow-y:auto; padding-right:4px;">
-        <div style="opacity:0.5; padding:20px; text-align:center;">Initializing feed...</div>
-      </div>
-    </div>
 
     </section>
 
-    <!-- Screen 2: Secondary Shelf -->
-    <section class="os-screen" id="extra-shelf">
-      <div style="position:absolute; top:40px; left:50%; transform:translateX(-50%); opacity:0.3; letter-spacing:0.5em; text-transform:uppercase; font-size:0.7rem;">Secondary Shelf</div>
-    </section>
 
   </main>
 
