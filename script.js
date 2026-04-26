@@ -83,7 +83,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     rssUrl: '',
     newsUrl1: 'india',
     weatherCity: 'Hyderabad',
-    tasks: [],
     widgets: {}, // bounds & zIndex
     wifiVisible: true,
     is24Hour: true,
@@ -100,7 +99,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     isPaused: false,
     bgVideoTime: 0,
     legibilityMode: false,
-    linkTarget: '_self'
+    linkTarget: '_self',
+    activeScreen: 'main-screen',
+    collapsedSections: {}
   };
 
   let state = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -124,7 +125,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!state.dockOrder) state.dockOrder = [];
   if (state.rssUrl === undefined) state.rssUrl = '';
   if (state.weatherCity === undefined) state.weatherCity = '';
-  if (!state.tasks) state.tasks = [];
+
+  if (state.collapsedSections === undefined) state.collapsedSections = {};
 
   function saveState() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -339,7 +341,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         state.widgets[id] = {
           top: rect.top + 'px',
           left: rect.left + 'px',
-          transform: window.getComputedStyle(widget).transform, // capture initial transform (like 50% center)
+          transform: window.getComputedStyle(widget).transform,
           width: null,
           height: null,
           zIndex: highestZ++,
@@ -355,12 +357,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       widget.style.left = state.widgets[id].left;
       widget.style.zIndex = state.widgets[id].zIndex;
       
-      // RESTORE TRANSFORM (fixes the jumping/offset issue on refresh)
-      if (state.widgets[id].transform) {
-          widget.style.transform = state.widgets[id].transform;
+      // RESTORE TRANSFORM only if it's meaningful (not 'none' already)
+      const savedTransform = state.widgets[id].transform;
+      if (savedTransform && savedTransform !== 'none' && savedTransform !== 'matrix(1, 0, 0, 1, 0, 0)') {
+          widget.style.transform = savedTransform;
       } else {
-          // Migration: if transform is missing but widget exists, capture it now
-          state.widgets[id].transform = window.getComputedStyle(widget).transform;
+          widget.style.transform = 'none';
       }
       
       // Restore saved dimensions if present
@@ -501,8 +503,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (isDragging) {
         isDragging = false;
         anyWidgetDragging = false;
-        widget.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, background-color 0.3s ease';
-        widget.style.willChange = 'auto'; // cleanup
+        // Only restore visual transitions — NOT width/height (keeps resize instant)
+        widget.style.transition = 'box-shadow 0.3s ease, background 0.3s ease';
+        widget.style.willChange = 'auto';
         state.widgets[id].left = widget.style.left;
         state.widgets[id].top = widget.style.top;
         saveState();
@@ -511,6 +514,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initial Edit mode tag
     state.editMode ? widget.classList.add('edit-mode') : widget.classList.remove('edit-mode');
+  });
+
+  // --- 4.5 COLLAPSIBLE SECTIONS PERSISTENCE ---
+  document.querySelectorAll('.collapsible-header').forEach(header => {
+    const label = header.querySelector('label')?.innerText.trim() || 'General';
+    const content = header.nextElementSibling;
+    const arrow = header.querySelector('.collapsible-arrow');
+
+    // Remove the inline onclick from HTML (it will be replaced by this listener)
+    header.onclick = null;
+
+    // Apply saved state on load
+    if (state.collapsedSections[label]) {
+      content.classList.add('collapsed');
+      arrow?.classList.add('collapsed');
+    } else {
+      content.classList.remove('collapsed');
+      arrow?.classList.remove('collapsed');
+    }
+
+    header.addEventListener('click', () => {
+      const isNowCollapsed = content.classList.toggle('collapsed');
+      arrow?.classList.toggle('collapsed', isNowCollapsed);
+      
+      state.collapsedSections[label] = isNowCollapsed;
+      saveState();
+    });
   });
 
   // --- 5. CONTROL CENTER TOGGLES ---
@@ -694,18 +724,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     state.gridSnap = e.target.checked; saveState();
   });
 
-  const wifiVisibleToggle = document.getElementById('wifi-visible-toggle');
-  const wifiIconEl = document.getElementById('wifi-icon');
-  
-  if (wifiVisibleToggle && wifiIconEl) {
-    wifiVisibleToggle.checked = state.wifiVisible;
-    wifiIconEl.style.display = state.wifiVisible ? 'inline-block' : 'none';
-    wifiVisibleToggle.addEventListener('change', e => {
-      state.wifiVisible = e.target.checked;
-      wifiIconEl.style.display = state.wifiVisible ? 'inline-block' : 'none';
-      saveState();
-    });
-  }
 
   const cursorToggle = document.getElementById('cursor-effects-toggle');
   if(cursorToggle) {
@@ -740,7 +758,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('.widget-toggle').forEach(toggle => {
     toggle.addEventListener('change', (e) => {
       const targetId = e.target.getAttribute('data-target');
-      state.widgets[targetId].visible = e.target.checked;
+      if (!state.widgets[targetId]) {
+        // Widget state not yet initialized — do it now
+        const el = document.getElementById(targetId);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          state.widgets[targetId] = {
+            top: rect.top + 'px',
+            left: rect.left + 'px',
+            transform: window.getComputedStyle(el).transform,
+            width: null, height: null,
+            zIndex: highestZ++, visible: e.target.checked
+          };
+        }
+      } else {
+        state.widgets[targetId].visible = e.target.checked;
+      }
       applyWidgetVisibility();
       saveState();
     });
@@ -811,15 +844,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   let activeWsIndex = 0;
   let managerSelectedWsId = state.workspaces[0].id;
 
-  function logActivity(title, url) {
-    state.recentActivity.unshift({title, url});
-    if (state.recentActivity.length > 3) state.recentActivity.pop();
-    saveState();
-  }
 
   function launchLink(e, linkObj) {
     if(linkObj.url.startsWith('#')) return; // handled locally
-    logActivity(linkObj.title, linkObj.url);
     if(linkObj.url.startsWith('file:///')) {
       alert("Local files cannot be launched directly by browsers for security reasons. Copy Path: " + linkObj.url);
     }
@@ -955,15 +982,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    // Recent Activity Setup
-    const ra = document.getElementById('recent-activity-list');
-    ra.innerHTML = '';
-    state.recentActivity.forEach(act => {
-      let r = document.createElement('div');
-      r.style.cssText = "font-size:10px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
-      r.innerHTML = `<span style="color:var(--text-primary)">></span> ${act.title}`;
-      ra.appendChild(r);
-    });
   }
 
   wsSelector.addEventListener('change', (e) => {
@@ -1275,51 +1293,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if(e.target.files[0]) { viewVidEl.src = URL.createObjectURL(e.target.files[0]); viewVidEl.play(); }
   });
   // --- 12. DYNAMIC SSID RETRIEVAL (On Hover) ---
-  const wifiIcon = document.getElementById('wifi-icon');
-  
-  async function updateWifiHoverText() {
-    try {
-      // 1. Primary: Try to fetch real SSID from local utility (network_utility.py)
-      const res = await fetch('http://127.0.0.1:5501/api/ssid');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.ssid && data.ssid !== "Not Connected") {
-          wifiIcon.title = `Network: ${data.ssid}`;
-          return;
-        }
-      }
-    } catch (err) {
-      // Python utility is not running, move to browser-native fallback
-    }
 
-    // 2. Secondary Fallback: Use Browser-Native Network Information API
-    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (!navigator.onLine) {
-      wifiIcon.title = "Not Connected (Offline)";
-    } else if (conn && (conn.type === 'wifi' || conn.effectiveType === 'wifi')) {
-      wifiIcon.title = "Connected (Wi-Fi)";
-    } else {
-      wifiIcon.title = "Connected (Web)";
-    }
-  }
 
-  if (wifiIcon) {
-    wifiIcon.addEventListener('mouseenter', updateWifiHoverText);
-  }
-
-  // --- 12.1 BATTERY STATUS (Web Standard) ---
-  const batteryIconEl = document.getElementById('battery-icon');
-  const batteryPercentEl = document.getElementById('battery-percent');
-
-  if (navigator.getBattery) {
-    navigator.getBattery().then(bat => {
-      let upd = () => {
-        batteryPercentEl.innerText = Math.round(bat.level * 100) + '%';
-        batteryIconEl.innerText = bat.charging ? 'battery_charging_full' : 'battery_full';
-      };
-      upd(); bat.addEventListener('chargingchange', upd); bat.addEventListener('levelchange', upd);
-    });
-  }
 
   // --- 13. ULTRA SMOOTH CURSOR PHYSICS (User Requested) ---
   const canvas = document.getElementById('trailCanvas');
@@ -1431,355 +1406,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- ANTI-GRAVITY APP FEATURES ---
   
-  // 1. WEATHER & ENVIRONMENT
-  const weatherIconEl = document.getElementById('weather-icon-main');
-  const weatherTempEl = document.getElementById('weather-temp-main');
-  const weatherDescEl = document.getElementById('weather-desc-main');
-  const weatherForecastEl = document.getElementById('weather-forecast');
-  const weatherLocationEl = document.getElementById('weather-location-name');
-
-  const weatherCodes = {
-    0: { icon: 'routine', desc: 'Clear sky' },
-    1: { icon: 'partly_cloudy_day', desc: 'Mainly clear' },
-    2: { icon: 'partly_cloudy_day', desc: 'Partly cloudy' },
-    3: { icon: 'cloud', desc: 'Overcast' },
-    45: { icon: 'foggy', desc: 'Fog' },
-    48: { icon: 'foggy', desc: 'Depositing rime fog' },
-    51: { icon: 'rainy', desc: 'Light drizzle' },
-    53: { icon: 'rainy', desc: 'Moderate drizzle' },
-    55: { icon: 'rainy', desc: 'Dense drizzle' },
-    61: { icon: 'rainy', desc: 'Slight rain' },
-    63: { icon: 'rainy', desc: 'Moderate rain' },
-    65: { icon: 'rainy', desc: 'Heavy rain' },
-    71: { icon: 'ac_unit', desc: 'Slight snow fall' },
-    73: { icon: 'ac_unit', desc: 'Moderate snow fall' },
-    75: { icon: 'ac_unit', desc: 'Heavy snow fall' },
-    95: { icon: 'thunderstorm', desc: 'Thunderstorm' }
-  };
-
-  async function fetchWeather() {
-    if (!weatherTempEl) return;
-    try {
-      let lat, lon;
-      if (state.weatherCity) {
-        const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(state.weatherCity)}&count=1&language=en&format=json`);
-        const geoData = await geoRes.json();
-        if (geoData.results && geoData.results.length > 0) {
-          const result = geoData.results[0];
-          lat = result.latitude;
-          lon = result.longitude;
-          if (weatherLocationEl) weatherLocationEl.innerText = `${result.name}, ${result.country_code}`.toUpperCase();
-        } else {
-          weatherDescEl.innerText = "City not found";
-          return;
-        }
-      } else {
-        // use geolocation or default fallback
-        try {
-          const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 }));
-          lat = pos.coords.latitude;
-          lon = pos.coords.longitude;
-          if (weatherLocationEl) weatherLocationEl.innerText = "LOCAL AREA";
-        } catch (e) {
-          lat = 51.5074; lon = -0.1278; // London fallback
-          weatherDescEl.innerText = "Using default. Change in settings.";
-          if (weatherLocationEl) weatherLocationEl.innerText = "LONDON, GB";
-        }
-      }
-
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
-      const data = await res.json();
-      
-      const current = data.current;
-      const code = current.weather_code;
-      const wInfo = weatherCodes[code] || { icon: 'cloud', desc: 'Unknown' };
-      
-      weatherIconEl.innerText = wInfo.icon;
-      weatherTempEl.innerText = `${Math.round(current.temperature_2m)}°`;
-      weatherDescEl.innerText = wInfo.desc;
-
-      if (weatherForecastEl && data.daily) {
-        weatherForecastEl.innerHTML = '';
-        for (let i = 1; i <= 3; i++) {
-          const dCode = data.daily.weather_code[i];
-          const dMax = Math.round(data.daily.temperature_2m_max[i]);
-          const dMin = Math.round(data.daily.temperature_2m_min[i]);
-          const date = new Date(data.daily.time[i]);
-          let dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-          if(dayName === "Invalid Date") dayName = "Day";
-          const dIcon = weatherCodes[dCode] ? weatherCodes[dCode].icon : 'cloud';
-
-          const el = document.createElement('div');
-          el.style.textAlign = 'center';
-          el.innerHTML = `
-            <div style="font-weight:bold; margin-bottom:4px;">${dayName}</div>
-            <span class="material-symbols-outlined" style="font-size:1.2rem; color:var(--text-primary);">${dIcon}</span>
-            <div>${dMax}° / ${dMin}°</div>
-          `;
-          weatherForecastEl.appendChild(el);
-        }
-      }
-
-    } catch (e) {
-      console.error(e);
-      weatherTempEl.innerText = "--°";
-      weatherDescEl.innerText = "Error fetching weather";
-    }
-  }
-  fetchWeather();
-  setInterval(fetchWeather, 30 * 60 * 1000); // 30 min
 
 
-  // 2. RSS FEED TICKER
-  const rssTickerContent = document.getElementById('rss-ticker-content');
-  async function fetchRSS() {
-    if (!rssTickerContent) return;
-    try {
-      const url = state.rssUrl || "https://news.ycombinator.com/rss";
-      const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
-      const data = await res.json();
-      if (data.items) {
-        // Increase ticker limit to 20 stories for longer feed
-        let text = data.items.slice(0, 20).map(item => `★ <a href="${item.link}" target="${state.linkTarget}" style="color:inherit; text-decoration:none;">${item.title}</a>`).join(' &nbsp; &nbsp; &nbsp; ');
-        // Duplicate for seamless loop
-        rssTickerContent.innerHTML = text + ' &nbsp; &nbsp; &nbsp; ' + text;
-      }
-    } catch (e) {
-      rssTickerContent.innerText = "Failed to load RSS feed... " + (state.rssUrl || "");
-    }
-  }
-  fetchRSS();
-  setInterval(fetchRSS, 15 * 60 * 1000); // 15 min
-
-  // 2.5 DETAILED NEWS CARDS (Aggregated)
-  const rssPresets = {
-    india: [
-      "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
-      "https://feeds.feedburner.com/ndtvnews-india-news"
-    ],
-    georgia: [
-      "https://civil.ge/feed",
-      "https://agenda.ge/en/rss"
-    ],
-    japan: [
-      "https://mainichi.jp/english/rss/all/index.xml",
-      "https://www.japantimes.co.jp/feed/"
-    ],
-    china: [
-      "https://www.scmp.com/rss/2/feed"
-    ],
-    canada: [
-      "https://www.cbc.ca/cmlink/rss-topstories",
-      "https://globalnews.ca/feed/"
-    ],
-    uk: [
-      "http://feeds.bbci.co.uk/news/rss.xml",
-      "https://feeds.skynews.com/feeds/rss/home.xml"
-    ],
-    us: [
-      "http://rss.cnn.com/rss/cnn_topstories.rss",
-      "https://feeds.npr.org/1001/rss.xml"
-    ]
-  };
-
-  const newsCache = {}; // Global cache for instant switching
-
-  async function renderDetailedNews(slot) {
-    const container = document.getElementById(`news-content-${slot}`);
-    if (!container) return;
-
-    const presetKey = state[`newsUrl${slot}`] || (slot == '2' ? 'us' : 'india');
-    
-    // Check Cache for "Insta-Switch"
-    const now = Date.now();
-    if (newsCache[presetKey] && (now - newsCache[presetKey].timestamp < 10 * 60 * 1000)) {
-        displayNewsItems(container, newsCache[presetKey].items);
-        // We still refetch in background if it's older than 1 minute
-        if (now - newsCache[presetKey].timestamp < 60 * 1000) return;
-    }
-
-    let urls = rssPresets[presetKey] || [presetKey];
-    if (!Array.isArray(urls)) urls = [urls];
-    
-    try {
-      const results = await Promise.all(urls.map(async url => {
-        try {
-          const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
-          return await res.json();
-        } catch (e) { return null; }
-      }));
-
-      let allItems = [];
-      results.forEach(data => {
-        if (data && data.items) {
-          data.items.forEach(item => {
-            item.sourceName = data.feed.title || presetKey;
-            allItems.push(item);
-          });
-        }
-      });
-
-      allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-
-      if (allItems.length > 0) {
-        // Cache the results
-        newsCache[presetKey] = { items: allItems, timestamp: Date.now() };
-        displayNewsItems(container, allItems);
-      } else if (!newsCache[presetKey]) {
-        container.innerHTML = `<div style="padding:20px; opacity:0.5; font-size:0.8rem;">No headlines found for ${presetKey}.</div>`;
-      }
-    } catch (e) {
-      if (!newsCache[presetKey]) {
-        container.innerHTML = `<div style="padding:20px; opacity:0.5; font-size:0.8rem;">Error loading feeds.</div>`;
-      }
-    }
-  }
-
-  function displayNewsItems(container, items) {
-    // Increase to 50 headlines for much longer feeds
-    container.innerHTML = items.slice(0, 50).map(item => `
-      <a href="${item.link}" target="${state.linkTarget}" class="news-item">
-        <div class="news-item-title">${item.title}</div>
-        <div class="news-item-source">${item.sourceName}</div>
-      </a>
-    `).join('');
-  }
-
-  // Bind news region selectors
-  document.querySelectorAll('.news-region-select').forEach(select => {
-    const slot = select.getAttribute('data-slot');
-    select.value = state[`newsUrl${slot}`] || 'india';
-    
-    select.addEventListener('change', (e) => {
-      state[`newsUrl${slot}`] = e.target.value;
-      saveState();
-      renderDetailedNews(slot);
-    });
-  });
-
-  renderDetailedNews(1);
-  setInterval(() => { renderDetailedNews(1); }, 20 * 60 * 1000);
-
-  // 2.6 NEWS SETTINGS MODAL
-  const newsModal = document.getElementById('news-settings-overlay');
-  const openNewsBtn = document.getElementById('open-news-settings');
-  const closeNewsBtn = document.getElementById('close-news-settings');
-
-  if (openNewsBtn && newsModal) {
-    openNewsBtn.addEventListener('click', () => {
-      newsModal.classList.add('active');
-      controlCenter.classList.remove('open');
-    });
-  }
-  if (closeNewsBtn && newsModal) {
-    closeNewsBtn.addEventListener('click', () => newsModal.classList.remove('active'));
-  }
 
 
-  // 3. TASKS / KANBAN
-  const taskListEl = document.getElementById('task-list');
-  const taskInputEl = document.getElementById('task-input');
-  const taskAddBtn = document.getElementById('task-add-btn');
-
-  function renderTasks() {
-    if (!taskListEl) return;
-    taskListEl.innerHTML = '';
-    state.tasks.forEach(t => {
-      const li = document.createElement('li');
-      li.className = `task-item ${t.completed ? 'completed' : ''}`;
-      li.innerHTML = `
-        <div class="task-check" data-id="${t.id}">check</div>
-        <span style="flex:1; word-break:break-all;">${t.text}</span>
-        <span class="material-symbols-outlined task-delete" data-id="${t.id}">close</span>
-      `;
-      taskListEl.appendChild(li);
-    });
-
-    taskListEl.querySelectorAll('.task-check').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = e.target.getAttribute('data-id');
-        const task = state.tasks.find(t => t.id === id);
-        if (task) { task.completed = !task.completed; saveState(); renderTasks(); }
-      });
-    });
-
-    taskListEl.querySelectorAll('.task-delete').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = e.target.getAttribute('data-id');
-        state.tasks = state.tasks.filter(t => t.id !== id);
-        saveState(); renderTasks();
-      });
-    });
-  }
-
-  if (taskAddBtn) {
-    taskAddBtn.addEventListener('click', () => {
-      if (taskInputEl.value.trim()) {
-        state.tasks.push({ id: 't' + Date.now(), text: taskInputEl.value.trim(), completed: false });
-        taskInputEl.value = '';
-        saveState();
-        renderTasks();
-      }
-    });
-    taskInputEl.addEventListener('keypress', (e) => { if (e.key === 'Enter') taskAddBtn.click(); });
-  }
-  renderTasks();
 
 
-  // 4. LOCAL MEDIA (System Bridge)
-  const lmTitle = document.getElementById('local-media-title');
-  const lmArtist = document.getElementById('local-media-artist');
-  const lmPlayBtn = document.getElementById('local-media-play-btn');
-  const lmVol = document.getElementById('local-media-vol');
-  
-  async function fetchLocalMedia() {
-    if (!lmTitle) return;
-    try {
-      const res = await fetch('http://127.0.0.1:5501/api/media');
-      if (res.ok) {
-        const data = await res.json();
-        lmTitle.innerText = data.title || "No Media";
-        lmArtist.innerText = data.artist || "";
-        lmPlayBtn.innerHTML = `<span class="material-symbols-outlined">${data.playing ? 'pause' : 'play_arrow'}</span>`;
-        if (document.activeElement !== lmVol && data.volume !== undefined) {
-          lmVol.value = data.volume;
-        }
-      }
-    } catch (e) {
-      lmTitle.innerText = "Bridge Disconnected";
-      lmArtist.innerText = "Run system_bridge.py";
-    }
-  }
-  
-  if (lmTitle) {
-    setInterval(fetchLocalMedia, 2000);
-    fetchLocalMedia();
-    
-    document.querySelectorAll('.local-media-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const action = e.currentTarget.getAttribute('data-action');
-        try {
-          await fetch('http://127.0.0.1:5501/api/media/control', {
-            method: 'POST',
-            body: JSON.stringify({ command: action })
-          });
-          setTimeout(fetchLocalMedia, 500);
-        } catch (err) {}
-      });
-    });
-
-    lmVol.addEventListener('change', async (e) => {
-      try {
-        await fetch('http://127.0.0.1:5501/api/media/control', {
-          method: 'POST',
-          body: JSON.stringify({ command: 'volume', value: parseInt(e.target.value) })
-        });
-      } catch (err) {}
-    });
-  }
-
-
-  // 5. GRID AUTO-ARRANGE (Masonry Math)
+  // 5. GRID AUTO-ARRANGE
   const autoArrangeBtn = document.getElementById('auto-arrange-btn');
   if (autoArrangeBtn) {
     autoArrangeBtn.addEventListener('click', () => {
@@ -1794,9 +1427,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const gridSnap = 20;
       const startX = 20;
       let currentX = startX;
-      // Offset start Y by the current vertical "shelf" page
-      const currentScrollPage = Math.round(window.scrollY / window.innerHeight);
-      let currentY = (currentScrollPage * window.innerHeight) + 80;
+      let currentY = 80;
       let rowMaxHeight = 0;
       const padding = 20;
       
@@ -1919,74 +1550,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  const weatherInputEl = document.getElementById('weather-location-input');
-  if (weatherInputEl) {
-    weatherInputEl.value = state.weatherCity || '';
-    weatherInputEl.addEventListener('change', (e) => {
-      state.weatherCity = e.target.value;
-      saveState();
-      fetchWeather();
-    });
-  }
 
-  const rssInputEl = document.getElementById('rss-feed-url-input');
-  if (rssInputEl) {
-    rssInputEl.value = state.rssUrl || '';
-    rssInputEl.addEventListener('change', (e) => {
-      state.rssUrl = e.target.value;
-      saveState();
-      fetchRSS();
-    });
-  }
 
-  // 8. FLICK-TO-SCROLL (Sensitivity Enhancement)
-  let lastScrollTime = 0;
-  window.addEventListener('wheel', (e) => {
-    // Disable screen switching if:
-    // 1. A widget is being dragged
-    // 2. Control Center is open
-    // 3. Command Palette is open
-    // 4. Scrolling inside a specific scrollable sub-element
-    if (anyWidgetDragging || 
-        controlCenter.classList.contains('open') || 
-        cmdPalette.classList.contains('open') ||
-        e.target.closest('.manager-list') || 
-        e.target.closest('#task-list') || 
-        e.target.closest('.news-content-list') || 
-        e.target.closest('#notepad-input')) return;
 
-    const currentTime = Date.now();
-    if (currentTime - lastScrollTime < 300) return; // Ultra-fast response (300ms)
 
-    const threshold = 20; // Lowered threshold for "scroll just a little"
-    if (Math.abs(e.deltaY) > threshold) {
-      if (e.deltaY > 0 && window.scrollY < (window.innerHeight - 50)) {
-        // Flick Down -> Go to Shelf
-        e.preventDefault(); 
-        window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
-        lastScrollTime = currentTime;
-      } else if (e.deltaY < 0 && window.scrollY > 50) {
-        // Flick Up -> Go to Main Dashboard
-        e.preventDefault();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        lastScrollTime = currentTime;
-      }
-    }
-  }, { passive: false });
 
-  // Handle Scroll Hint Visibility
-  const scrollHint = document.getElementById('main-scroll-hint');
-  if (scrollHint) {
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 100) {
-        scrollHint.style.opacity = '0';
-        scrollHint.style.pointerEvents = 'none';
-      } else {
-        scrollHint.style.opacity = '0.6';
-        scrollHint.style.pointerEvents = 'none';
-      }
-    });
-  }
 
   // Final flush render
   renderDock();
